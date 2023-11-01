@@ -1,61 +1,79 @@
 "use client"
-import Image from 'next/image'
 import React from 'react'
 
-export default function Home() {
+const boxes = [1, 2, 3, 4, 5, 6] // Same but more cool --> Array.from({ length: 6 }, (v, k) => k + 1);
+const getPrize = () => Math.floor(Math.random() * 6) + 1; // Random number between 1 and 6
 
-  const [counter, setCounter] = React.useState(0);
+export default function Game() {
 
-  const helloworld = (event) => {
+  const [prize, setPrize] = React.useState(getPrize())
+  const [tries, setTries] = React.useState(0)
+  const [gameStatus, setGameStatus] = React.useState('playing') // 'playing', 'won', 'lost'
+  const [clickedBoxes, setClickedBoxes] = React.useState([])
 
-    const hello = event.target.textContent;
+  const handleBoxClick = (id) => {
+    if (gameStatus !== 'playing') return // Avoid box clicks if game is won or lost
+    if (clickedBoxes.includes(id)) return // Clicked boxes cannot be clicked twice
 
-    event.target.innerHTML = "<p class='text-black text-center'>Hello World</p>";
-    setTimeout(() => {
-      event.target.innerHTML = hello;
-    }, 3000);
-    setCounter(counter + 1);
-
-    if (counter === 2) {
-      alert("You lose!");
-      setCounter(0);
+    if (id === prize) {
+      setGameStatus('won')
+      return
+    } else {
+      setClickedBoxes([...clickedBoxes, id])
+      setTries(tries + 1)
     }
+
+    if (tries === 2) {
+      setGameStatus('lost')
+      return
+    }
+
+  }
+
+  const handlePlayAgain = () => {
+    setClickedBoxes([])
+    setGameStatus('playing')
+    setTries(0)
+    setPrize(getPrize())
   }
 
   return (
-    <main
-      className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="flex justify-between w-full" data>
-        <div className="w-1/3">
+    <>
+      <header className="text-center mt-12 pb-32">
+        <h1 className="text-4xl font-bold pb-5">Prize Game</h1>
+        {gameStatus !== 'playing' && (
+          <div className="col-span-2 text-center">
+            <h2 className="text-4xl font-bold">
+              {gameStatus === 'won' ? 'You won! 🏆🎉' : 'You lost! 💣💥'}
+            </h2>
+            <button
+              className="bg-blue-500 hover:bg-blue-700 text-white font-bold mt-5 py-2 px-4 rounded"
+              onClick={() => handlePlayAgain()}>
+              Play again
+            </button>
+          </div>
+        )}
+      </header>
 
-          <div
-            className="h-64 bg-gray-300 mx-10 mb-4 hover:bg-yellow-300 flex items-center justify-center"
-            onClick={helloworld}>
-          </div>
-          <div
-            className="h-64 bg-gray-400 mx-10 mb-4 hover:bg-yellow-400 flex items-center justify-center"
-            onClick={helloworld}>
-          </div>
-          <div
-            className="h-64 bg-gray-500 mx-10 mb-4 hover:bg-yellow-500 flex items-center justify-center"
-            onClick={helloworld}>
-          </div>
-        </div>
-        <div className="w-1/3">
-          <div
-            className="h-64 bg-gray-300 mx-10 mb-4 hover:bg-yellow-300 flex items-center justify-center"
-            onClick={helloworld}>
-          </div>
-          <div
-            className="h-64 bg-gray-400 mx-10 mb-4 hover:bg-yellow-400 flex items-center justify-center"
-            onClick={helloworld}>
-          </div>
-          <div
-            className="h-64 bg-gray-500 mx-10 mb-4 hover:bg-yellow-500 flex items-center justify-center"
-            onClick={helloworld}>
-          </div>
-        </div>
-      </div>
-    </main>
+      <main
+        className="grid grid-cols-2 grid-rows-3 gap-4 center">
+        {
+          boxes.map((box) => (
+            <div
+              key={box}
+              className={`
+              ${gameStatus !== 'playing' && box === prize && 'bg-green-500'}
+              ${gameStatus === 'playing' && 'hover:bg-yellow-300 cursor-pointer'}
+              ${clickedBoxes.includes(box) && 'bg-red-500'}
+              ${box === prize && 'underline' /* underline the prize box, remove this line if not cheating :D */}
+              h-48 bg-gray-500 mx-10 mb-4 flex justify-center items-center
+            `}
+              onClick={() => handleBoxClick(box)}>
+              <span className="text-4xl font-bold text-white">{box}</span>
+            </div>
+          ))
+        }
+      </main >
+    </>
   )
 }
